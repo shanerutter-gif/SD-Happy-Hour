@@ -9,7 +9,25 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 const { createClient } = supabase;
 const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-  auth: { persistSession: true, autoRefreshToken: true }
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true,
+    storage: {
+      getItem: (key) => {
+        try { return localStorage.getItem(key); }
+        catch { return sessionStorage.getItem(key); }
+      },
+      setItem: (key, value) => {
+        try { localStorage.setItem(key, value); }
+        catch { sessionStorage.setItem(key, value); }
+      },
+      removeItem: (key) => {
+        try { localStorage.removeItem(key); }
+        catch { sessionStorage.removeItem(key); }
+      }
+    }
+  }
 });
 
 // ── AUTH STATE ────────────────────────────────────────────
