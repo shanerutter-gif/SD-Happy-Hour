@@ -229,8 +229,8 @@ main{min-height:60vh}
 .map-card-when{font-size:11px;color:rgba(255,200,215,.42);margin-top:4px}
 
 /* ── MODAL BASE ──────────────────────────────────────────── */
-.modal-overlay{position:fixed;inset:0;background:rgba(10,4,8,.88);z-index:1000;display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
-.modal-overlay.open{display:flex}
+.modal-overlay{position:fixed;inset:0;background:rgba(10,4,8,.88);z-index:1000;display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);-webkit-overflow-scrolling:touch;}
+.modal-overlay.open{display:flex;touch-action:none;}
 .modal{
   background:linear-gradient(180deg,#3A1528 0%,#220E1A 100%);
   border:1px solid rgba(232,84,122,.2);border-radius:24px 24px 0 0;
