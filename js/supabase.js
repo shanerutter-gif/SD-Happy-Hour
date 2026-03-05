@@ -50,23 +50,8 @@ async function getSession() {
 }
 
 // ── AUTH METHODS ──────────────────────────────────────────
-async function authSignUp(email, password, displayName) {
-  try {
-    const res = await fetch('/api/auth', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ mode: 'signup', email, password, name: displayName })
-    });
-    const data = await res.json();
-    if (data.error_description || data.error) {
-      return { error: { message: data.error_description || data.error } };
-    }
-    return { data, error: null };
-  } catch (e) {
-    return { error: { message: e.message } };
-  }
-}
-
+// Routes through /api/auth proxy so it works on all browsers,
+// Chrome iOS, and iPhone home screen (PWA) mode.
 async function authSignIn(email, password) {
   try {
     const res = await fetch('/api/auth', {
@@ -78,12 +63,36 @@ async function authSignIn(email, password) {
     if (data.error_description || data.error) {
       return { error: { message: data.error_description || data.error } };
     }
-    // Manually set the session so the Supabase client knows the user is logged in
+    // Hand the tokens to the Supabase client so session + onAuthStateChange fire
     const { error } = await db.auth.setSession({
       access_token: data.access_token,
       refresh_token: data.refresh_token
     });
     return { data, error };
+  } catch (e) {
+    return { error: { message: e.message } };
+  }
+}
+
+async function authSignUp(email, password, displayName) {
+  try {
+    const res = await fetch('/api/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mode: 'signup', email, password, name: displayName })
+    });
+    const data = await res.json();
+    if (data.error_description || data.error) {
+      return { error: { message: data.error_description || data.error } };
+    }
+    // If signup returned tokens, set the session immediately
+    if (data.access_token) {
+      await db.auth.setSession({
+        access_token: data.access_token,
+        refresh_token: data.refresh_token
+      });
+    }
+    return { data, error: null };
   } catch (e) {
     return { error: { message: e.message } };
   }
@@ -180,7 +189,7 @@ function isFavorite(venueId) {
 }
 
 async function toggleFavorite(venueId) {
-  if (!currentUser) return null; // signal: not logged in
+  if (!currentUser) return null;
   if (isFavorite(venueId)) {
     await db.from('favorites')
       .delete().eq('user_id', currentUser.id).eq('venue_id', venueId);
@@ -206,7 +215,7 @@ async function setDigestPreference(userId, enabled) {
     .update({ digest_enabled: enabled }).eq('id', userId);
 }
 
-// Alias used internally by app.js loadFavorites flow
+// Alias used internally
 async function fetchFavorites() {
   if (!currentUser) return [];
   return getFavoriteVenues(currentUser.id);
