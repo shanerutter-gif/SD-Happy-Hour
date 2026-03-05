@@ -126,19 +126,38 @@ async function handleAuth(mode) {
   const email    = (document.getElementById('authEmail')?.value || '').trim();
   const password = document.getElementById('authPassword')?.value || '';
 
-  if (!email || !password) { showToast('Please fill in all fields'); btn.disabled=false; renderAuthModal(mode); return; }
+  if (!email || !password) { 
+    showToast('Please fill in all fields'); 
+    btn.disabled = false; 
+    renderAuthModal(mode); 
+    return; 
+  }
 
-  if (mode === 'signup') {
-    const name = (document.getElementById('authName')?.value || '').trim();
-    const { error } = await authSignUp(email, password, name);
-    if (error) { showToast('❌ ' + error.message); btn.disabled=false; renderAuthModal(mode); return; }
-    closeAuth();
-    showToast('✉️ Check your email to confirm your account!');
-  } else {
-    const { error } = await authSignIn(email, password);
-    if (error) { showToast('❌ ' + error.message); btn.disabled=false; renderAuthModal(mode); return; }
-    closeAuth();
-    showToast('Welcome back! 🌸');
+  try {
+    // 10 second timeout so it never hangs forever
+    const authPromise = mode === 'signup'
+      ? authSignUp(email, password, (document.getElementById('authName')?.value || '').trim())
+      : authSignIn(email, password);
+
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Request timed out — check your connection and try again')), 10000)
+    );
+
+    const { error } = await Promise.race([authPromise, timeoutPromise]);
+
+    if (error) throw error;
+
+    if (mode === 'signup') {
+      closeAuth();
+      showToast('Account created! You can now sign in 🌸');
+    } else {
+      closeAuth();
+      showToast('Welcome back! 🌸');
+    }
+  } catch (err) {
+    showToast('❌ ' + (err.message || 'Something went wrong'));
+    btn.disabled = false;
+    btn.textContent = mode === 'signin' ? 'Sign In ✦' : 'Create Account ✦';
   }
 }
 
