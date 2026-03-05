@@ -51,16 +51,42 @@ async function getSession() {
 
 // ── AUTH METHODS ──────────────────────────────────────────
 async function authSignUp(email, password, displayName) {
-  const { data, error } = await db.auth.signUp({
-    email, password,
-    options: { data: { full_name: displayName } }
-  });
-  return { data, error };
+  try {
+    const res = await fetch('/api/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mode: 'signup', email, password, name: displayName })
+    });
+    const data = await res.json();
+    if (data.error_description || data.error) {
+      return { error: { message: data.error_description || data.error } };
+    }
+    return { data, error: null };
+  } catch (e) {
+    return { error: { message: e.message } };
+  }
 }
 
 async function authSignIn(email, password) {
-  const { data, error } = await db.auth.signInWithPassword({ email, password });
-  return { data, error };
+  try {
+    const res = await fetch('/api/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mode: 'signin', email, password })
+    });
+    const data = await res.json();
+    if (data.error_description || data.error) {
+      return { error: { message: data.error_description || data.error } };
+    }
+    // Manually set the session so the Supabase client knows the user is logged in
+    const { error } = await db.auth.setSession({
+      access_token: data.access_token,
+      refresh_token: data.refresh_token
+    });
+    return { data, error };
+  } catch (e) {
+    return { error: { message: e.message } };
+  }
 }
 
 async function authSignOut() {
