@@ -4,8 +4,8 @@
    values from supabase.com → Project Settings → API
    ═══════════════════════════════════════════════════════ */
 
-const SUPABASE_URL      = 'https://YOUR_PROJECT_ID.supabase.co';
-const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY_HERE';
+const SUPABASE_URL      = 'https://opcskuzbdfrlnyhraysk.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9wY3NrdXpiZGZybG55aHJheXNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3NDQ3MTcsImV4cCI6MjA4ODMyMDcxN30.9LXr-oFTLmYEZrlVt1zOvRFvJ8998YkTmrHJ7yNv81EE';
 
 const { createClient } = supabase;
 const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
